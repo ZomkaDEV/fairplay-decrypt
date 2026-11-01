@@ -274,8 +274,8 @@ def observe_uid_layer(
         else (program, "observe-credential", str(pid), license_path, output, "90")
     )
     command = " ".join(map(shlex.quote, arguments))
-    observer = subprocess.Popen(
-        device.command + [command], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    observer = device.popen(
+        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     trigger_process = None
     direct_process = None
@@ -291,8 +291,8 @@ def observe_uid_layer(
                 "FairPlay observer failed: " + ready.decode("utf-8", "replace")
             )
         trigger_command = " ".join(map(shlex.quote, (trigger_program, executable)))
-        trigger_process = subprocess.Popen(
-            device.command + [trigger_command],
+        trigger_process = device.popen(
+            trigger_command,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -310,8 +310,8 @@ def observe_uid_layer(
                     " ".join(map(shlex.quote, ("uiopen", "--bundleid", bundle_id)))
                 )
             else:
-                direct_process = subprocess.Popen(
-                    device.command + [shlex.quote(executable)],
+                direct_process = device.popen(
+                    shlex.quote(executable),
                     stdin=subprocess.DEVNULL,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
@@ -358,6 +358,13 @@ def main() -> None:
     parser.add_argument(
         "--ssh-port", type=int, default=2222, help="local USB SSH port (default: 2222)"
     )
+    parser.add_argument(
+        "--ssh-user", default="root", help="device SSH user (default: root)"
+    )
+    parser.add_argument(
+        "--ssh-password",
+        help="device SSH password; uses sshpass, which must be on PATH",
+    )
     args = parser.parse_args()
     if args.sinf_member and not args.ipa:
         parser.error("--sinf-member requires --ipa")
@@ -369,7 +376,9 @@ def main() -> None:
         else None
     )
     udid = normalize_udid(args.device_udid) if args.device_udid else connected_udid()
-    device = SSHDevice(args.ssh_port, udid)
+    device = SSHDevice(
+        args.ssh_port, udid, user=args.ssh_user, password=args.ssh_password
+    )
     try:
         for name in DEVICE_FILES:
             device.write(name, args.bundle / name, executable=name.endswith(".ios"))

@@ -33,4 +33,14 @@ works with apps from the Apple Account it came from.
 To retrieve an Arcade credential, pass an Arcade IPA with `--ipa` and have
 an Arcade app from that account installed on the device.
 
+Sometimes the script has issues starting the iproxy tunnel. You can launch it
+yourself in another terminal window.
+
+For password auth, pass `--ssh-user` and `--ssh-password`. This needs `sshpass`
+in `PATH`. This is useful for those on rootless jailbreaks like Dopamine.
+
+```sh
+python3 credential-retrieval/retrieve.py --ssh-user mobile --ssh-password alpine --output-dir /path/to/new-output-directory
+```
+
 Build on a Mac with Xcode and `ldid`.
